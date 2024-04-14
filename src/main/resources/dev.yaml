@@ -1,0 +1,16 @@
+db:
+  host: "localhost"
+  port: "3307"
+  user: "root"
+  password: ""
+  database: "users"
+  
+http:
+  host: "localhost"
+  port: "8081"
+  
+mq:
+  host: "localhost"
+  port: "61616"
+  user: "admin"
+  password: "admin"
