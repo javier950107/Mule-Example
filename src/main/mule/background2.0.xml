@@ -1,17 +1,16 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
-	xmlns:http="http://www.mulesoft.org/schema/mule/http"
-	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+<mule xmlns:jms="http://www.mulesoft.org/schema/mule/jms" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
 http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
 http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
-http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/current/mule-jms.xsd">
 	<flow name="background2.0Flow" doc:id="5e357d5e-0951-4af5-8a96-6773de51eb2f" >
-		<http:listener doc:name="Listener" doc:id="cb210720-83d9-4458-b76a-c6f2944204ee" config-ref="HTTP_Listener_config" path="/insert" allowedMethods="POST">
-			<http:error-response statusCode="#[vars.statusCode]" >
-				<http:body ><![CDATA[#[payload]]]></http:body>
-			</http:error-response>
-		</http:listener>
+		<jms:listener doc:name="On New Message" doc:id="f1f2a6e5-5dbd-4f2b-9bf7-db167db11aac" config-ref="JMS_Config" destination="prueba" numberOfConsumers="1">
+			<jms:response outboundContentType="application/json" />
+		</jms:listener>
 		<ee:transform doc:name="Transform Message" doc:id="7fe3b1cc-9426-4cd2-914c-159c135653e5" >
 			<ee:message >
 				<ee:set-payload ><![CDATA[%dw 2.0
@@ -97,5 +96,28 @@ payload]]></ee:set-payload>
 			</ee:message>
 		</ee:transform>
 		<logger level="INFO" doc:name="Logger" doc:id="11186826-b704-4058-ab2f-bd7e0c64da16" />
+	</flow>
+	<flow name="background2.0Flow2" doc:id="55ad2b2a-2c71-493f-8d61-0eeb31fe2204" >
+		<http:listener doc:name="Listener" doc:id="c1fe2d44-aabc-4f87-bef7-cb046594c96c" config-ref="HTTP_Listener_config" path="/queue" allowedMethods="POST"/>
+		<ee:transform doc:name="Transform Message" doc:id="23b1786b-5f6b-4edc-9cc8-cb0663ceaad9" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<jms:publish doc:name="Publish" doc:id="a9340a08-264b-4e6c-bf65-7852f9674008" config-ref="JMS_Config" destination="prueba">
+			<jms:message outboundContentType="application/json" />
+		</jms:publish>
+		<ee:transform doc:name="Transform Message" doc:id="5fa67642-6173-4fd1-a993-a477bacbfba2" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="0d561b86-5ad4-45ff-8d9a-18824c204a04" />
 	</flow>
 </mule>

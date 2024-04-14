@@ -15,7 +15,7 @@ http://www.mulesoft.org/schema/mule/jms http://www.mulesoft.org/schema/mule/jms/
 	</http:listener-config>
 	<jms:config name="JMS_Config" doc:name="JMS Config" doc:id="afb6ee77-4c19-4c66-831d-b7500c47b45e" >
 		<jms:active-mq-connection username="${mq.user}" password="${mq.password}" >
-			<jms:factory-configuration brokerUrl="vm://${mq.host}:${mq.port}" />
+			<jms:factory-configuration brokerUrl="tcp://${mq.host}:${mq.port}" />
 		</jms:active-mq-connection>
 	</jms:config>
 </mule>
