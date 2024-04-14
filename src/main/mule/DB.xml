@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="InsertAuthor" doc:id="5f8aacf5-ef0c-43fc-9d15-6a77d6389e56" >
+		<db:insert doc:name="Insert" doc:id="387853c2-df8a-4e6e-9275-1e54a03a2edd" config-ref="Database_Config">
+			<db:sql ><![CDATA[INSERT INTO authors (name) VALUES (:name)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[vars.nameTemp]]]></db:input-parameters>
+		</db:insert>
+	</flow>
+	<flow name="SearchById" doc:id="aa1280a2-88b6-4b94-8a5b-7c29452381dd" >
+		<db:select doc:name="SearchByName" doc:id="fd310172-b646-4a7e-958c-d641627d4301" config-ref="Database_Config">
+			<db:sql ><![CDATA[SELECT name FROM authors WHERE name LIKE :name]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+	"name" : "%" ++ payload.name ++ "%"
+}]]]></db:input-parameters>
+		</db:select>
+	</flow>
+	<flow name="UpdateAuthorsById" doc:id="7f87bd31-f587-4830-84e1-1dbeb6a2d9be" >
+		<db:bulk-update doc:name="UpdateAuthors" doc:id="528f26e2-a9fb-4ec9-a53b-4cce50ad8f0d" config-ref="Database_Config">
+			<db:sql ><![CDATA[UPDATE authors
+SET authors.name = :name
+WHERE authors.id = :id
+]]></db:sql>
+		</db:bulk-update>
+	</flow>
+</mule>

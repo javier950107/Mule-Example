@@ -1,5 +1,101 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
-<mule xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
-	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd"></mule>
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	<flow name="background2.0Flow" doc:id="5e357d5e-0951-4af5-8a96-6773de51eb2f" >
+		<http:listener doc:name="Listener" doc:id="cb210720-83d9-4458-b76a-c6f2944204ee" config-ref="HTTP_Listener_config" path="/insert" allowedMethods="POST">
+			<http:error-response statusCode="#[vars.statusCode]" >
+				<http:body ><![CDATA[#[payload]]]></http:body>
+			</http:error-response>
+		</http:listener>
+		<ee:transform doc:name="Transform Message" doc:id="7fe3b1cc-9426-4cd2-914c-159c135653e5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+			<ee:variables >
+				<ee:set-variable variableName="nameTemp" ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"name" : payload.name
+}]]></ee:set-variable>
+			</ee:variables>
+		</ee:transform>
+		<flow-ref doc:name="SearchById" doc:id="1339fa80-14ea-4d9f-a026-e4568ce2cf5b" name="SearchById"/>
+		<ee:transform doc:name="Transform Message" doc:id="2dd8af5a-d11e-47a5-b179-775f8f6dc496" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/java
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<choice doc:name="Choice" doc:id="37e1e905-b8e3-4691-8057-8e2a29bf4b39" >
+			<when expression="#[sizeOf(payload) &gt; 0]">
+				<raise-error doc:name="Raise error" doc:id="ddf8744f-9215-4dcd-99c9-2e8207d5b14f" type="CUSTOM:CLIENT_ERROR" description="User duplicated"/>
+			</when>
+			<otherwise>
+				<flow-ref doc:name="Flow Reference" doc:id="c689ef5a-69b0-443c-9519-403689246f86" name="InsertAuthor" />
+				<ee:transform doc:name="Transform Message" doc:id="ff526ee2-c0cc-433c-a0c6-558b3b152f8f">
+					<ee:message>
+						<ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"status" : 200,
+	"message" : "Value inserted",
+	"data" : payload
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</otherwise>
+		</choice>
+		<remove-variable doc:name="Remove Variable" doc:id="ea557235-bc8e-47eb-8d9a-9e4f9f239b98" variableName="nameTemp"/>
+		<logger level="INFO" doc:name="Logger" doc:id="0a9ba4a2-ea92-49d7-a357-4eb4db7630a4" />
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="05a76c0a-5f2b-4346-b2f6-9a6fc35d60d9" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="528abb9b-3523-40ee-b55b-7cedc9fc9c50" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"Status" : "Error",
+	"Message" : "There was an error"
+}]]></ee:set-payload>
+					</ee:message>
+					<ee:variables >
+					</ee:variables>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+	</flow>
+	<flow name="background2.0Flow1" doc:id="0f5430e5-9cbf-45dc-a4d4-e032166fef15" >
+		<http:listener doc:name="Listener" doc:id="513e1503-81bb-43aa-a7be-3b2dc5da46d3" config-ref="HTTP_Listener_config" path="/insertBulk" allowedMethods="POST"/>
+		<ee:transform doc:name="Transform Message" doc:id="2088a621-68a3-422b-86ba-1ce7fcd4f8bb" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<flow-ref doc:name="Flow Reference" doc:id="1c2e3e84-b96d-4082-9ac1-092e794c8f4c" name="UpdateAuthorsById"/>
+		<ee:transform doc:name="Transform Message" doc:id="f846a90e-bf73-48ca-84ed-3c2026d7f7a5" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+payload]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+		<logger level="INFO" doc:name="Logger" doc:id="11186826-b704-4058-ab2f-bd7e0c64da16" />
+	</flow>
+</mule>
